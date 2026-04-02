@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI ATS - Intelligent Job Matching</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fa-solid fa-graduation-cap"></i> AI ATS System
+        </div>
+        <div class="nav-links">
+            <a href="index.html" id="nav-dashboard" class="active"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            <a href="#" id="nav-jobs"><i class="fa-solid fa-briefcase"></i> Jobs</a>
+            <a href="#" id="nav-candidates"><i class="fa-solid fa-users"></i> Applications</a>
+        </div>
+        <div class="profile-menu">
+            <a href="signin.html" class="profile-link"><i class="fa-solid fa-user"></i> Sign In</a>
+            <a href="signup.html" class="profile-btn">Sign Up</a>
+        </div>
+    </nav>
+    <main class="container">
+        <div id="dashboard-view">
+            <header class="page-header">
+                <div class="header-title">
+                    <h1><i class="fa-solid fa-gauge-high"></i> Dashboard</h1>
+                    <p>Welcome back! Here's your recruitment overview.</p>
+                </div>
+            </header>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h2 class="stat-number" id="stat-resumes">0</h2>
+                    <p class="stat-label">TOTAL RESUMES</p>
+                    <div class="stat-icon"><i class="fa-solid fa-file-lines"></i></div>
+                </div>
+                <div class="stat-card">
+                    <h2 class="stat-number" id="stat-shortlisted">0</h2>
+                    <p class="stat-label">SHORTLISTED</p>
+                    <div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div>
+                </div>
+                <div class="stat-card">
+                    <h2 class="stat-number" id="stat-avg-score">0%</h2>
+                    <p class="stat-label">AVG MATCH SCORE</p>
+                    <div class="stat-icon"><i class="fa-solid fa-chart-line"></i></div>
+                </div>
+                <div class="stat-card">
+                    <h2 class="stat-number" id="stat-open-jobs">2</h2>
+                    <p class="stat-label">OPEN JOBS</p>
+                    <div class="stat-icon"><i class="fa-solid fa-star"></i></div>
+                </div>
+            </div>
+            <section class="card upload-section" style="margin-bottom: 30px;">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-cloud-arrow-up"></i> Upload Resume</h3>
+                </div>
+                <div class="card-body">
+                    <form id="upload-form">
+                        <div class="file-drop-area" id="drop-area" style="padding: 40px;">
+                            <div class="icon"><i class="fa-solid fa-file-pdf" style="font-size: 3rem;"></i></div>
+                            <p style="font-size: 1.1rem; margin-top: 10px;">Drag & Drop your resume here or click to browse.</p>
+                            <input type="file" id="resume-input" accept="application/pdf" hidden>
+                            <button type="button" class="btn-secondary" id="browse-btn" style="margin-top: 15px;">Browse File</button>
+                            <div id="file-name-display" class="file-name" style="margin-top: 10px; font-weight: 500;"></div>
+                        </div>
+                        <button type="submit" class="btn-primary full-width mt-3" id="submit-btn" style="padding: 15px;" disabled>Analyze Resume</button>
+                    </form>
+                    <div id="loader" class="loader hidden">
+                        <div class="spinner"></div>
+                        <p>Running AI parsing & matching...</p>
+                    </div>
+                </div>
+            </section>
+            <section class="results-section hidden" id="results-section">
+                <div class="card candidate-summary">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-magnifying-glass-chart"></i> Extraction Summary</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="summary-details">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <p><strong>Candidate File:</strong> <span id="candidate-filename"></span></p>
+                                <div id="ats-score-badge" style="padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.9rem;">ATS Score: <span id="ats-score-value">0</span>/100</div>
+                            </div>
+                            <p><strong>Detected Skills:</strong></p>
+                            <div class="skills-container" id="skills-container"></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="ats-feedback-card" class="card mt-4 hidden" style="border-left: 5px solid #ef4444; background: #fef2f2;">
+                    <div class="card-header" style="background: transparent;">
+                        <h3 style="color: #b91c1c;"><i class="fa-solid fa-triangle-exclamation"></i> ATS Optimization Required</h3>
+                    </div>
+                    <div class="card-body">
+                        <p style="color: #7f1d1d; font-weight: 500; margin-bottom: 15px;">Your resume score is too low to be processed by our automated matching system.</p>
+                        <div style="background: white; padding: 20px; border-radius: 10px; border: 1px solid #fee2e2;">
+                            <h4 style="font-size: 1rem; margin-bottom: 10px; color: #b91c1c;">How to Improve Your Score:</h4>
+                            <ul id="ats-tips-list" style="list-style: none; padding-left: 0;">
+                                <li style="margin-bottom: 8px; padding-left: 20px; position: relative;"><i class="fa-solid fa-circle-check" style="color: #ef4444; position: absolute; left: 0; top: 4px;"></i> <strong>Keywords:</strong> Include more industry tools.</li>
+                                <li style="margin-bottom: 8px; padding-left: 20px; position: relative;"><i class="fa-solid fa-circle-check" style="color: #ef4444; position: absolute; left: 0; top: 4px;"></i> <strong>Structure:</strong> Use "Experience" and "Education" headings.</li>
+                                <li style="margin-bottom: 8px; padding-left: 20px; position: relative;"><i class="fa-solid fa-circle-check" style="color: #ef4444; position: absolute; left: 0; top: 4px;"></i> <strong>Length:</strong> Aim for 400+ words.</li>
+                            </ul>
+                        </div>
+                        <button class="btn-primary mt-4" onclick="location.reload();" style="background: #b91c1c; border-color: #b91c1c;">Try Again</button>
+                    </div>
+                </div>
+                <div class="jobs-matching mt-4" id="jobs-matching-section">
+                    <h3 class="section-title">Context-Aware Job Recommendations</h3>
+                    <div class="jobs-grid" id="jobs-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+                    </div>
+                </div>
+            </section>
+            <div class="lower-sections-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 40px;">
+                <section class="card side-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-clock-rotate-left"></i> Recent Activity</h3>
+                    </div>
+                    <div class="card-body" id="recent-activity-container" style="min-height: 200px;">
+                    </div>
+                </section>
+                <section class="card side-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-lightbulb"></i> Recommended For You</h3>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="recommendation-list" id="recommendation-list" style="max-height: 400px; overflow-y: auto;">
+                        </div>
+                        <div class="card-footer center">
+                            <button class="btn-outline-primary btn-sm" id="view-all-recs-btn">View All Recommendations</button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+        </div>
+        <div id="jobs-view" class="hidden">
+            <header class="page-header">
+                <div class="header-title">
+                    <h1><i class="fa-solid fa-briefcase"></i> Explore Opportunities</h1>
+                    <p>Browse our current openings.</p>
+                </div>
+            </header>
+            <div class="jobs-matching">
+                <div class="jobs-grid" id="all-jobs-grid">
+                </div>
+            </div>
+        </div>
+        <div id="candidates-view" class="hidden">
+            <header class="page-header">
+                <div class="header-title">
+                    <h1><i class="fa-solid fa-file-invoice"></i> My Applications</h1>
+                    <p>Track the jobs you've applied for and their status.</p>
+                </div>
+            </header>
+            <div id="applied-jobs-list" class="jobs-matching">
+            </div>
+        </div>
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>

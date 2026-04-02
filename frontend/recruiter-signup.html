@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recruiter Sign Up - AI ATS</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .auth-container { display: flex; justify-content: center; align-items: center; min-height: 80vh; }
+        .auth-card { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); width: 100%; max-width: 450px; border-top: 5px solid var(--secondary-color);}
+        .auth-title { text-align: center; font-size: 1.8rem; color: var(--text-primary); margin-bottom: 10px; }
+        .auth-subtitle { text-align: center; color: var(--text-secondary); margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        .form-row { display: flex; gap: 15px; }
+        .form-row .form-group { flex: 1; }
+        .form-label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-primary); }
+        .form-input { width: 100%; padding: 12px 15px; border: 1px solid var(--border-color); border-radius: 8px; font-family: inherit; transition: border-color 0.3s; }
+        .form-input:focus { outline: none; border-color: var(--secondary-color); }
+        .auth-btn { background: var(--secondary-color); color: white; width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 10px; transition: transform 0.3s, box-shadow 0.3s; }
+        .auth-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
+        .auth-links { margin-top: 20px; text-align: center; font-size: 0.9rem; }
+        .auth-links a { color: var(--secondary-color); text-decoration: none; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">AI ATS Recruiter</div>
+        <div class="nav-links">
+            <a href="home.html">Back to Home</a>
+        </div>
+        <div class="profile-menu">
+            <a href="recruiter-signin.html" class="profile-link">Sign In</a>
+            <a href="recruiter-signup.html" class="profile-btn">Sign Up</a>
+        </div>
+    </nav>
+    <div class="container auth-container">
+        <div class="auth-card">
+            <h2 class="auth-title">Recruiter Registration</h2>
+            <p class="auth-subtitle">Join us to find the best candidates</p>
+            <form id="signup-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">First Name</label>
+                        <input type="text" class="form-input" id="signup-fname" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" class="form-input" id="signup-lname" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Company / Organization</label>
+                    <input type="text" class="form-input" id="signup-company" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Work Email</label>
+                    <input type="email" class="form-input" id="signup-email" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" id="signup-pass" required>
+                </div>
+                <button type="submit" class="auth-btn">Create Account</button>
+            </form>
+            <div class="auth-links">
+                <p>Already registered? <a href="recruiter-signin.html">Sign In</a></p>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('signup-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const firstName = document.getElementById('signup-fname').value;
+            const lastName = document.getElementById('signup-lname').value;
+            const company = document.getElementById('signup-company').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-pass').value;
+            let users = JSON.parse(localStorage.getItem('users')) || [];
+            if (users.find(u => u.email === email)) {
+                alert('Email already registered! Please sign in.');
+                return;
+            }
+            const newUser = { firstName, lastName, email, password, company, role: 'recruiter' };
+            users.push(newUser);
+            localStorage.setItem('users', JSON.stringify(users));
+            localStorage.setItem('currentUser', JSON.stringify(newUser));
+            window.location.href = 'recruiter-dashboard.html';
+        });
+    </script>
+</body>
+</html>

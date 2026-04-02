@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recruiter Dashboard - AI ATS</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 2% auto;
+            padding: 20px;
+            border-radius: 12px;
+            width: 80%;
+            height: 85vh;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .close-modal {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #666;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close-modal:hover {
+            color: var(--primary-color);
+        }
+
+        .resume-iframe {
+            width: 100%;
+            height: calc(100% - 40px);
+            border: none;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fa-solid fa-user-tie"></i> AI ATS - Recruiter Portal
+        </div>
+        <div class="profile-menu">
+            <span id="recruiter-name" style="margin-right: 15px; font-weight: 500;"></span>
+            <a href="#" id="logout-btn" class="profile-btn">Logout</a>
+        </div>
+    </nav>
+    <main class="container">
+        <header class="page-header" style="margin-top: 30px;">
+            <div class="header-title">
+                <h1><i class="fa-solid fa-users-viewfinder"></i> Candidate Applications</h1>
+                <p>Review the best matches for your open positions.</p>
+            </div>
+        </header>
+        <div id="applications-container" style="margin-top: 20px;">
+            <div class="loader hidden" id="rec-loader">
+                <div class="spinner"></div>
+            </div>
+            <div id="apps-grid"></div>
+        </div>
+    </main>
+    <div id="resumeModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeModal">&times;</span>
+            <h2 id="modalCandidateName" style="margin-bottom: 20px; color: var(--text-primary);">Resume</h2>
+            <iframe id="resumeViewer" class="resume-iframe"></iframe>
+        </div>
+    </div>
+    <script>
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser || currentUser.role !== 'recruiter') {
+            window.location.href = 'recruiter-signin.html';
+        } else {
+            document.getElementById('recruiter-name').textContent = currentUser.firstName + " " + currentUser.lastName;
+        }
+        document.getElementById('logout-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('currentUser');
+            window.location.href = 'home.html';
+        });
+        const appsGrid = document.getElementById('apps-grid');
+        const allApplications = JSON.parse(localStorage.getItem('applications')) || [];
+        const applications = allApplications.filter(app => app.company && app.company.toLowerCase() === currentUser.company.toLowerCase());
+        if (applications.length === 0) {
+            appsGrid.innerHTML = `
+                <div class="card" style="text-align: center; padding: 40px;">
+                    <i class="fa-solid fa-inbox" style="font-size: 3rem; color: #cbd5e1; margin-bottom: 10px;"></i>
+                    <p style="color: var(--text-secondary);">No applications received yet.</p>
+                </div>
+            `;
+        } else {
+            applications.sort((a, b) => {
+                const scoreA = parseFloat(a.matchScore) || 0;
+                const scoreB = parseFloat(b.matchScore) || 0;
+                return scoreB - scoreA;
+            });
+            let html = '<div class="jobs-grid">';
+            applications.forEach((app, index) => {
+                let matchClass = 'score-low';
+                let rawScore = parseFloat(app.matchScore);
+                if (rawScore >= 70) matchClass = 'score-high';
+                else if (rawScore >= 40) matchClass = 'score-med';
+                html += `
+                    <div class="job-card glass-panel" style="margin-bottom: 20px;">
+                        <h3 style="margin-bottom: 5px; color: var(--primary-color);">
+                            <i class="fa-solid fa-user"></i> ${app.candidateName}
+                        </h3>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 15px;">
+                            <i class="fa-solid fa-envelope"></i> ${app.candidateEmail}
+                        </p>
+                        <div style="margin-bottom: 15px;">
+                            <p style="font-size: 0.95rem;"><strong>Applied For:</strong> ${app.jobTitle}</p>
+                            <p style="font-size: 0.95rem; margin-top: 5px;"><strong>Company:</strong> ${app.displayCompany || app.company}</p>
+                            <p style="font-size: 0.95rem; margin-top: 5px;"><strong>Resume File:</strong> ${app.resumeFile || 'Not detected'}</p>
+                            <p style="font-size: 0.95rem; margin-top: 5px;"><strong>Date:</strong> ${app.date}</p>
+                        </div>
+                        <div style="display: flex; gap: 10px; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid var(--border-color); flex-wrap: wrap;">
+                            <span class="match-score ${matchClass}">${app.matchScore}</span>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn-primary" style="padding: 6px 12px; font-size: 0.85rem;" onclick="viewResume(${index})">
+                                    <i class="fa-solid fa-file-pdf"></i> View
+                                </button>
+                                <button class="btn-primary" style="padding: 6px 12px; font-size: 0.85rem; background: #2563eb; border-color: #2563eb;" onclick="contactCandidate('${app.candidateEmail}', '${app.candidateName}', '${app.jobTitle}')">
+                                    <i class="fa-solid fa-paper-plane"></i> Contact
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            appsGrid.innerHTML = html;
+        }
+        function viewResume(index) {
+            const app = applications[index];
+            if (!app.resumeContent) {
+                alert("Resume content not found for this older application.");
+                return;
+            }
+            const modal = document.getElementById('resumeModal');
+            const viewer = document.getElementById('resumeViewer');
+            const title = document.getElementById('modalCandidateName');
+            title.textContent = `${app.candidateName}'s Resume - ${app.jobTitle}`;
+            viewer.src = app.resumeContent;
+            modal.style.display = "block";
+        }
+        function contactCandidate(email, name, job) {
+            const subject = encodeURIComponent(`Application Update: ${job} at ${currentUser.company}`);
+            const body = encodeURIComponent(`Hi ${name},\n\nThank you for applying for the ${job} position at ${currentUser.company}. We have reviewed your resume and would like to discuss the next steps with you.\n\nAre you available for a brief call soon?\n\nBest regards,\n${currentUser.firstName} ${currentUser.lastName}\n${currentUser.company}`);
+            window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+            alert(`Drafting email to ${name}... Use your email client to Send!`);
+        }
+        const modal = document.getElementById('resumeModal');
+        const span = document.getElementById('closeModal');
+        span.onclick = function () {
+            modal.style.display = "none";
+            document.getElementById('resumeViewer').src = "";
+        }
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+                document.getElementById('resumeViewer').src = "";
+            }
+        }
+    </script>
+</body>
+
+</html>
